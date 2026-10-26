@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locadora de Veículos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Cabeçalho Principal -->
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">🚗</div>
+        <div>
+          <h1 class="brand-title">Locadora de Veículos</h1>
+          <p class="brand-subtitle">Painel de Gestão e Locação</p>
+        </div>
+      </div>
+      <div class="header-status" id="api-status-badge">
+        <span class="status-indicator" id="api-status-indicator"></span>
+        <span id="api-status-text">Conectando à API...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área Principal -->
+  <main class="container main-content">
+    
+    <!-- Painel de Resumo / Métricas Rápidas -->
+    <section class="metrics-grid" aria-label="Estatísticas da Frota">
+      <div class="metric-card">
+        <span class="metric-label">Total da Frota</span>
+        <strong class="metric-value" id="metric-total">0</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Disponíveis</span>
+        <strong class="metric-value text-success" id="metric-disponiveis">0</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Locados / Indisponíveis</span>
+        <strong class="metric-value text-warning" id="metric-locados">0</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Média da Diária</span>
+        <strong class="metric-value" id="metric-media">R$ 0,00</strong>
+      </div>
+    </section>
+
+    <!-- Layout Dividido: Formulário de Gestão e Listagem -->
+    <div class="content-grid">
+      
+      <!-- Formulário de Veículo (Adicionar / Atualizar) -->
+      <section class="card form-section" aria-labelledby="form-title">
+        <div class="card-header">
+          <h2 id="form-title" class="card-title">Cadastrar Novo Veículo</h2>
+          <span class="badge" id="form-badge">Modo Adição</span>
+        </div>
+
+        <form id="veiculo-form" novalidate>
+          <input type="hidden" id="veiculo-id" value="">
+
+          <div class="form-group">
+            <label for="campo-marca">Marca do Veículo <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="campo-marca" 
+              name="marca" 
+              placeholder="Ex.: Ford, Chevrolet, Toyota" 
+              required
+              autocomplete="off"
+            >
+            <span class="field-error" id="erro-marca" aria-live="polite"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="campo-modelo">Modelo do Veículo <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="campo-modelo" 
+              name="modelo" 
+              placeholder="Ex.: Focus, Onix, Corolla" 
+              required
+              autocomplete="off"
+            >
+            <span class="field-error" id="erro-modelo" aria-live="polite"></span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="campo-ano">Ano de Fabricação <span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="campo-ano" 
+                name="ano" 
+                min="1950" 
+                max="2035" 
+                placeholder="Ex.: 2023" 
+                required
+              >
+              <span class="field-error" id="erro-ano" aria-live="polite"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="campo-placa">Placa <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="campo-placa" 
+                name="placa" 
+                placeholder="Ex.: ABC1D23" 
+                maxlength="8" 
+                required
+                autocomplete="off"
+              >
+              <span class="field-error" id="erro-placa" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="campo-diaria">Valor da Diária (R$) <span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="campo-diaria" 
+                name="valorDiaria" 
+                min="0.01" 
+                step="0.01" 
+                placeholder="Ex.: 150.00" 
+                required
+              >
+              <span class="field-error" id="erro-diaria" aria-live="polite"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="campo-disponivel">Disponibilidade <span class="required">*</span></label>
+              <select id="campo-disponivel" name="disponivel" required>
+                <option value="true">Disponível para Locação</option>
+                <option value="false">Locado / Indisponível</option>
+              </select>
+              <span class="field-error" id="erro-disponivel" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-submit" class="btn btn-primary">
+              <span aria-hidden="true">➕</span> Adicionar Veículo
+            </button>
+            <button type="button" id="btn-cancelar" class="btn btn-secondary is-hidden">
+              Cancelar Edição
+            </button>
+            <button type="button" id="btn-limpar" class="btn btn-outline">
+              Limpar Campos
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Seção da Lista de Veículos -->
+      <section class="card list-section" aria-labelledby="list-title">
+        <div class="card-header list-header">
+          <div>
+            <h2 id="list-title" class="card-title">Catálogo de Veículos</h2>
+            <p class="card-subtitle">Visualização dos veículos cadastrados no sistema</p>
+          </div>
+          <button type="button" id="btn-recarregar-dados" class="btn btn-outline btn-sm" title="Recarrega a lista da API">
+            <span aria-hidden="true">🔄</span> Atualizar Lista
+          </button>
+        </div>
+
+        <!-- Filtros e Busca -->
+        <div class="filter-bar">
+          <div class="form-group filter-search">
+            <label for="filtro-busca" class="sr-only">Buscar por marca ou modelo</label>
+            <input 
+              type="search" 
+              id="filtro-busca" 
+              placeholder="🔍 Buscar por marca, modelo ou placa..." 
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="form-group filter-status">
+            <label for="filtro-status" class="sr-only">Filtrar por status</label>
+            <select id="filtro-status">
+              <option value="todos">Todos os status</option>
+              <option value="disponivel">Apenas Disponíveis</option>
+              <option value="indisponivel">Apenas Indisponíveis</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lista Dinâmica de Veículos -->
+        <div id="lista-veiculos" class="veiculos-grid" role="region" aria-live="polite">
+          <!-- Gerado via JavaScript -->
+        </div>
+
+        <!-- Mensagem de Lista Vazia -->
+        <div id="empty-state" class="empty-state is-hidden">
+          <div class="empty-icon" aria-hidden="true">🚗💨</div>
+          <h3>Nenhum veículo encontrado</h3>
+          <p>Tente ajustar os filtros ou adicione um novo carro pelo formulário ao lado.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal de Visualização Detalhada do Veículo -->
+  <div id="modal-detalhes" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-titulo" class="modal-title">Detalhes do Veículo</h3>
+        <button type="button" id="btn-fechar-modal" class="modal-close-btn" aria-label="Fechar janela de detalhes">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-conteudo">
+        <!-- Preenchido dinamicamente via JavaScript -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-modal-editar" class="btn btn-primary">Editar Este Veículo</button>
+        <button type="button" id="btn-modal-fechar" class="btn btn-secondary">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contêiner de Notificações / Toasts -->
+  <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- Rodapé -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <p>Locadora de Veículos — Sistema Integrado (AP2)</p>
+      <p class="footer-note">Backend ASP.NET Core (.NET 10), Entity Framework Core e SQLite.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
