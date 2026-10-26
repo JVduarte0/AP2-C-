@@ -241,9 +241,6 @@ Vídeo da primeira etapa do projeto:
 
 https://youtu.be/IabnmqN-gFA
 
-## Repositório
-
-https://github.com/JVduarte0/APILocadoravec
 
 ## Autor
 
