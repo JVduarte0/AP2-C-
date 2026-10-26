@@ -1,30 +1,40 @@
-# API Locadora de Veículos
+# API Locadora de Veículos — AP2
 
 ## Sobre o projeto
 
-Este projeto consiste em uma API REST desenvolvida em ASP.NET Core utilizando .NET 10 e Minimal API.
+Este projeto consiste em uma API REST desenvolvida em C# com ASP.NET Core, .NET 10 e Minimal API.
 
-O tema escolhido foi uma **Locadora de Veículos**, tendo como recurso principal os veículos disponíveis na locadora.
+O tema escolhido foi uma **Locadora de Veículos**, tendo como recurso principal o gerenciamento dos veículos cadastrados na locadora.
 
-A API permite listar, buscar, cadastrar, atualizar e remover veículos.
+O projeto foi desenvolvido inicialmente na AP1, utilizando uma lista em memória. Na AP2, a aplicação foi evoluída para utilizar **Entity Framework Core com banco de dados SQLite**, permitindo a persistência dos dados.
 
-Os dados são armazenados em uma `List<Veiculo>` na memória da aplicação. Portanto, os dados cadastrados, alterados ou removidos durante a execução são perdidos quando a API é reiniciada.
+Também foi realizada a integração do frontend existente com os endpoints reais da API.
 
----
+O sistema permite:
+
+- Listar todos os veículos cadastrados.
+- Buscar um veículo pelo ID.
+- Cadastrar novos veículos.
+- Atualizar informações de veículos.
+- Excluir veículos.
+- Visualizar e gerenciar os veículos através da interface web.
+- Manter os dados armazenados mesmo após reiniciar a aplicação.
 
 ## Tecnologias utilizadas
 
+- C#
 - .NET 10
 - ASP.NET Core
 - Minimal API
-- C#
+- Entity Framework Core
+- SQLite
+- HTML, CSS e JavaScript
 - Bruno para testes das requisições HTTP
-
----
+- Git e GitHub para versionamento
 
 ## Requisitos
 
-Para executar o projeto é necessário possuir o SDK do **.NET 10** instalado.
+Para executar o projeto, é necessário possuir o SDK do .NET 10 instalado.
 
 Para verificar a versão instalada:
 
@@ -38,21 +48,33 @@ Também é possível visualizar todos os SDKs instalados:
 dotnet --list-sdks
 ```
 
----
+Para trabalhar com as migrations, é necessário possuir a ferramenta `dotnet-ef`, compatível com o Entity Framework Core 10.
 
 ## Como executar o projeto
 
-Abra o terminal na pasta do projeto e execute:
+Abra o terminal na pasta que contém o arquivo `ApiLocadoraVeiculos.csproj`.
+
+Restaure as dependências:
+
+```bash
+dotnet restore
+```
+
+Prepare o banco de dados SQLite utilizando as migrations:
+
+```bash
+dotnet ef database update
+```
+
+Execute a aplicação:
 
 ```bash
 dotnet run --urls http://localhost:5050
 ```
 
-A API ficará disponível em:
+A aplicação estará disponível em:
 
-```text
 http://localhost:5050
-```
 
 Para verificar se o projeto compila corretamente:
 
@@ -60,28 +82,41 @@ Para verificar se o projeto compila corretamente:
 dotnet build
 ```
 
----
+## Banco de dados e persistência
 
-## Endpoints
+Na AP2, os dados passaram a ser armazenados em um banco SQLite, utilizando Entity Framework Core.
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/` | Verifica se a API está em funcionamento |
-| GET | `/api/veiculos` | Lista todos os veículos |
-| GET | `/api/veiculos/{id}` | Busca um veículo pelo ID |
-| POST | `/api/veiculos` | Cadastra um novo veículo |
-| PUT | `/api/veiculos/{id}` | Atualiza os dados de um veículo |
-| DELETE | `/api/veiculos/{id}` | Remove um veículo |
+O projeto possui:
 
----
+- `Models/Veiculo.cs`: representa a entidade Veiculo.
+- `Data/LocadoraDbContext.cs`: contexto responsável pela comunicação com o banco.
+- `Migrations/`: arquivos responsáveis pela criação e atualização da estrutura do banco.
+- `appsettings.json`: contém a configuração de conexão com o SQLite.
+- `Program.cs`: contém as rotas HTTP da API.
 
-## Exemplo de cadastro - POST
+O banco é gerenciado pelo Entity Framework Core através do `DbContext` e das operações `SaveChangesAsync()`.
+
+Dessa forma, os veículos cadastrados e não excluídos permanecem armazenados após o encerramento e reinício da aplicação.
+
+O arquivo local `locadora.db` não é enviado ao GitHub. O banco pode ser preparado novamente utilizando as migrations.
+
+## Endpoints da API
+
+| Método | Rota | Descrição | Sucesso |
+|---|---|---|---|
+| GET | `/api/veiculos` | Lista todos os veículos | 200 |
+| GET | `/api/veiculos/{id}` | Busca veículo pelo ID | 200 |
+| POST | `/api/veiculos` | Cadastra novo veículo | 201 |
+| PUT | `/api/veiculos/{id}` | Atualiza veículo existente | 200 |
+| DELETE | `/api/veiculos/{id}` | Exclui veículo | 204 |
+
+Quando um veículo solicitado não existe, a API retorna `404 Not Found`.
+
+## Exemplo de cadastro — POST
 
 Rota:
 
-```text
-POST /api/veiculos
-```
+`POST /api/veiculos`
 
 Exemplo de JSON:
 
@@ -96,21 +131,13 @@ Exemplo de JSON:
 }
 ```
 
-Quando o veículo é cadastrado corretamente, a API retorna o código HTTP:
+Quando o veículo é cadastrado corretamente, a API retorna `201 Created`, incluindo os dados do veículo e seu ID.
 
-```text
-201 Created
-```
-
----
-
-## Exemplo de atualização - PUT
+## Exemplo de atualização — PUT
 
 Rota:
 
-```text
-PUT /api/veiculos/{id}
-```
+`PUT /api/veiculos/{id}`
 
 Exemplo de JSON:
 
@@ -125,90 +152,99 @@ Exemplo de JSON:
 }
 ```
 
-Quando o veículo é atualizado corretamente, a API retorna:
+Quando a atualização é realizada corretamente, a API retorna `200 OK`.
 
-```text
-200 OK
-```
+Caso o ID informado não exista, retorna `404 Not Found`.
 
-Caso o ID informado não exista, a API retorna:
+## Exclusão de veículo — DELETE
 
-```text
-404 Not Found
-```
+Rota:
 
----
+`DELETE /api/veiculos/{id}`
 
-## Remoção de veículo
+Quando a exclusão é realizada corretamente, a API retorna `204 No Content`.
 
-Para remover um veículo:
+Caso o veículo não exista, retorna `404 Not Found`.
 
-```text
-DELETE /api/veiculos/{id}
-```
+## Frontend integrado
 
-Quando a remoção é realizada com sucesso, a API retorna:
+Na AP2, a interface web desenvolvida anteriormente foi integrada à API real.
 
-```text
-204 No Content
-```
+Os arquivos estão localizados na pasta `wwwroot/`:
 
-Caso o veículo não exista:
+- `index.html`: estrutura da interface.
+- `style.css`: estilização da aplicação.
+- `app.js`: comunicação com os endpoints da API.
 
-```text
-404 Not Found
-```
+A interface permite cadastrar, listar, visualizar, editar e excluir veículos diretamente pelo navegador.
 
----
+As operações utilizam requisições HTTP para a API, e os dados são armazenados no banco SQLite.
 
-## Armazenamento dos dados
+Para acessar a interface, inicie a aplicação e abra:
 
-Os veículos são armazenados em uma `List<Veiculo>` em memória.
+http://localhost:5050
 
-A aplicação inicia com dois veículos cadastrados para possibilitar os testes da API.
+A interface utiliza a mesma origem da API.
 
-Não foi utilizado banco de dados ou Entity Framework.
+## Testes da API com Bruno
 
-Como os dados ficam somente na memória, qualquer cadastro, alteração ou remoção realizado durante a execução será perdido quando a aplicação for encerrada ou reiniciada.
+Os testes das requisições HTTP foram realizados utilizando o Bruno.
 
----
+A Collection está armazenada na pasta `Locadora de Veiculos/` do repositório.
 
-## Testes da API
+Ela contém as seguintes requisições:
 
-Os testes foram realizados utilizando o **Bruno**.
+1. 00 - API no ar
+2. 01 - Listar
+3. 02 - Buscar por id
+4. 03 - Cadastrar
+5. 04 - Atualizar
+6. 05 - Remover
+7. 06 - Confirmação de remoção
 
-A Collection está armazenada na pasta:
+Os testes permitem verificar os códigos HTTP:
 
-```text
-/bruno
-```
+- `200 OK`
+- `201 Created`
+- `204 No Content`
+- `404 Not Found`
 
-A Collection contém as seguintes requisições:
+Também foi verificada a persistência dos registros após reiniciar a aplicação.
 
-- `00 - API no ar`
-- `01 - Listar`
-- `02 - Buscar por id`
-- `03 - Cadastrar`
-- `04 - Atualizar`
-- `05 - Remover`
-- `06 - Confirmação remoção`
+## Testes da interface
 
-Os testes permitem verificar os códigos HTTP `200 OK`, `201 Created`, `204 No Content` e `404 Not Found`.
+A interface web foi utilizada para testar o funcionamento integrado entre frontend, API e banco de dados.
 
----
+Foram realizados testes de cadastro, listagem, atualização e exclusão de veículos.
 
-## Vídeo de demonstração
+As alterações realizadas pela interface são enviadas aos endpoints da API e refletidas nos dados armazenados no SQLite.
 
-O vídeo demonstra a execução da API, o funcionamento das rotas e os testes realizados através do Bruno.
+## Vídeo de demonstração — AP2
 
-**Link do vídeo:**
+O vídeo apresenta o funcionamento completo da aplicação, demonstrando:
 
-```text
+- A organização do projeto e sua evolução da AP1 para a AP2.
+- A execução da API com Entity Framework Core e SQLite.
+- Os testes das rotas GET, POST, PUT e DELETE no Bruno.
+- Os códigos de resposta HTTP.
+- A integração do frontend com a API real.
+- O cadastro, a edição e a exclusão de veículos pelo navegador.
+- A persistência dos dados após reiniciar a aplicação.
+
+**Link do vídeo da AP2:**
+
+[A inserir após a gravação]
+
+## Vídeo de demonstração — AP1
+
+Vídeo da primeira etapa do projeto:
+
 https://youtu.be/IabnmqN-gFA
-```
 
----
+## Repositório
+
+https://github.com/JVduarte0/APILocadoravec
 
 ## Autor
 
-João Vitor Duarte do Santos.
+João Vitor Duarte
