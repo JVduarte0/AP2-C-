@@ -233,7 +233,7 @@ O vídeo apresenta o funcionamento completo da aplicação, demonstrando:
 
 **Link do vídeo da AP2:**
 
-[A inserir após a gravação]
+https://youtu.be/YmMqZ_Wf9l4
 
 ## Vídeo de demonstração — AP1
 
