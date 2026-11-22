@@ -1,4 +1,4 @@
-
+using ApiLocadoraVeiculos.Dtos;
 using ApiLocadoraVeiculos.Data;
 using ApiLocadoraVeiculos.Models;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +12,30 @@ builder.Services.AddDbContext<LocadoraDbContext>(options =>
     )
 );
 
+
 var app = builder.Build();
+
+// Tratamento de exceções
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode =
+            StatusCodes.Status500InternalServerError;
+
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            mensagem = "Ocorreu um erro interno. Tente novamente mais tarde."
+        });
+    });
+});
 
 // Permite abrir o frontend da pasta wwwroot
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
 
 
 // ROTA RAIZ - INFORMAÇÕES DA API
@@ -124,12 +143,3 @@ app.MapDelete("/api/veiculos/{id:int}",
 app.Run();
 
 
-// DTO DE ENTRADA - SEM ID
-public record VeiculoInput(
-    string Marca,
-    string Modelo,
-    int Ano,
-    string Placa,
-    decimal ValorDiaria,
-    bool Disponivel
-);
