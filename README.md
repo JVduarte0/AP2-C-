@@ -149,4 +149,7 @@ O arquivo local `locadora.db` não precisa ser enviado ao GitHub, pois o banco p
 ## Endpoints da API
 
 | Método | Rota | Descrição | Resposta |
+
+## Vídeo de demonstração — AS
+https://youtu.be/aOXih04ls3A
 |---
